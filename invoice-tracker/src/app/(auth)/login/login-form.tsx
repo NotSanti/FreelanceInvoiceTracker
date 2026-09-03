@@ -1,9 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { useState } from "react";
 
-import { createAccount, signIn, type AuthFormState } from "@/app/(auth)/login/actions";
+import { signIn, type AuthFormState } from "@/app/(auth)/login/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,21 +18,8 @@ export function LoginForm({
     signIn,
     initialState,
   );
-  const [createState, createAction, createPending] = useActionState(
-    createAccount,
-    initialState,
-  );
-  const [lastSubmitted, setLastSubmitted] = useState<"signIn" | "create" | null>(null);
-
-  const pending = signInPending || createPending;
-  const activeState =
-    lastSubmitted === "create"
-      ? createState
-      : lastSubmitted === "signIn"
-        ? signInState
-        : initialState;
-  const error = activeState.error;
-  const notice = activeState.notice;
+  const error = signInState.error;
+  const notice = signInState.notice;
 
   return (
     <form action={signInAction} className="mt-8 space-y-5">
@@ -83,21 +69,9 @@ export function LoginForm({
         <Button
           type="submit"
           className="w-full"
-          formAction={signInAction}
-          disabled={pending}
-          onClick={() => setLastSubmitted("signIn")}
+          disabled={signInPending}
         >
           {signInPending ? "Signing in…" : "Sign in"}
-        </Button>
-        <Button
-          type="submit"
-          variant="ghost"
-          className="w-full"
-          formAction={createAction}
-          disabled={pending}
-          onClick={() => setLastSubmitted("create")}
-        >
-          {createPending ? "Creating account…" : "Create account"}
         </Button>
       </div>
     </form>

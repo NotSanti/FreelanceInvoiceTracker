@@ -58,6 +58,16 @@ export default async function LoginPage({
             About
           </Link>
         </p>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          New here?{" "}
+          <Link
+            href="/signup"
+            className="underline-offset-4 hover:underline hover:text-foreground"
+          >
+            Create an account
+          </Link>
+        </p>
       </div>
     </div>
   );

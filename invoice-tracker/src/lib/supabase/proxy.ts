@@ -49,6 +49,8 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isLoginRoute = pathname === "/login" || pathname.startsWith("/login/");
+  const isSignupRoute =
+    pathname === "/signup" || pathname.startsWith("/signup/");
   const isAuthConfirmRoute =
     pathname === "/auth/confirm" || pathname.startsWith("/auth/confirm/");
   const isPublicInvoice = pathname.startsWith("/invoice/");
@@ -61,6 +63,7 @@ export async function updateSession(request: NextRequest) {
     pathname === "/manifest.webmanifest" || pathname === "/sw.js";
   const isPublicRoute =
     isLoginRoute ||
+    isSignupRoute ||
     isAuthConfirmRoute ||
     isPublicInvoice ||
     isStripeWebhook ||
