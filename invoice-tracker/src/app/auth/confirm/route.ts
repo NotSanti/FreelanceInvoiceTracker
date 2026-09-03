@@ -43,17 +43,38 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const response = NextResponse.redirect(redirectUrl);
   const { url, publishableKey } = getSupabaseEnv();
+
+  // We must create the response first so that setAll can write session cookies
+  // onto it. But we also need to handle the error case, so we track success
+  // and build the final redirect after verifyOtp completes.
+  let response = NextResponse.redirect(redirectUrl);
+
   const supabase = createServerClient<Database>(url, publishableKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
+        // Forward incoming request cookies so the supabase client sees them.
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+
+        // Rebuild the response to pick up the forwarded request cookies.
+        response = NextResponse.redirect(redirectUrl);
+
+        // Write session cookies onto the outgoing response.
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });
+
+        // Forward any cache-control / auth headers the client emits.
+        if (headers) {
+          Object.entries(headers).forEach(([key, value]) => {
+            response.headers.set(key, value);
+          });
+        }
       },
     },
   });
