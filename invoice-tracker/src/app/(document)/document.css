@@ -1,0 +1,20 @@
+@page {
+  size: letter;
+  margin: 14mm;
+}
+
+@media print {
+  .document-toolbar {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .invoice-sheet {
+    box-shadow: none !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}
