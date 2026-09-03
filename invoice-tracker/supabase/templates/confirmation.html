@@ -49,7 +49,7 @@
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 20px;">
                   <tr>
                     <td align="center" style="border-radius:8px;background:#2B2926;">
-                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:500;line-height:1;color:#FAF9F7;text-decoration:none;border-radius:8px;">Confirm email address</a>
+                      <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:500;line-height:1;color:#FAF9F7;text-decoration:none;border-radius:8px;">Confirm email address</a>
                     </td>
                   </tr>
                 </table>
@@ -57,7 +57,7 @@
                   If the button does not open, copy this link into your browser:
                 </p>
                 <p style="margin:0;font-size:13px;line-height:1.5;">
-                  <a href="{{ .ConfirmationURL }}" style="color:#1F1E1C;word-break:break-all;">{{ .ConfirmationURL }}</a>
+                  <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/" style="color:#1F1E1C;word-break:break-all;">{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/</a>
                 </p>
               </td>
             </tr>

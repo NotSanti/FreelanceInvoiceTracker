@@ -71,7 +71,9 @@ export async function createAccount(
     email: parsed.email,
     password: parsed.password,
     options: {
-      emailRedirectTo: `${getAppUrl()}/auth/confirm?next=/`,
+      // Used by our custom confirmation email template to build the correct
+      // token exchange URL (avoids Supabase SiteURL mismatches like localhost).
+      emailRedirectTo: getAppUrl(),
     },
   });
 
