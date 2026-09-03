@@ -1,0 +1,76 @@
+<!--
+  Branded Supabase signup confirmation email.
+  For hosted Supabase, paste this into Auth > Email Templates > Confirm signup.
+  For local Supabase CLI, point auth.email.template.confirmation.content_path here.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirm your email address</title>
+  </head>
+  <body style="margin:0;padding:0;background:#FAF9F7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#FAF9F7;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E8E4DE;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="padding:32px 32px 24px;border-bottom:1px solid #E8E4DE;">
+                <p style="margin:0 0 4px;font-size:13px;line-height:1.4;color:#6F6C67;letter-spacing:0.02em;text-transform:uppercase;">Create your account</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0;">
+                  <tr>
+                    <td style="padding:0 10px 0 0;vertical-align:middle;">
+                      <span
+                        aria-hidden="true"
+                        style="display:inline-block;vertical-align:middle;width:8px;height:8px;border-radius:999px;background:#1F1E1C;"
+                      ></span>
+                    </td>
+                    <td style="vertical-align:middle;text-align:left;">
+                      <p style="margin:0;font-size:20px;line-height:1.3;font-weight:600;color:#1F1E1C;">Independent Pocket</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 8px;">
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#1F1E1C;">Hi there,</p>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#1F1E1C;">
+                  Confirm your email address to finish setting up your Independent Pocket account.
+                </p>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#1F1E1C;">
+                  This verification link is single-use and should be opened in the same browser you use for the app.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 32px 28px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 20px;">
+                  <tr>
+                    <td align="center" style="border-radius:8px;background:#2B2926;">
+                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:500;line-height:1;color:#FAF9F7;text-decoration:none;border-radius:8px;">Confirm email address</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 4px;font-size:13px;line-height:1.5;color:#6F6C67;">
+                  If the button does not open, copy this link into your browser:
+                </p>
+                <p style="margin:0;font-size:13px;line-height:1.5;">
+                  <a href="{{ .ConfirmationURL }}" style="color:#1F1E1C;word-break:break-all;">{{ .ConfirmationURL }}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px;background:#FAF9F7;border-top:1px solid #E8E4DE;">
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#6F6C67;">
+                  Independent Pocket · If you did not request this account, you can ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,15 +1,20 @@
 "use client";
 
 import { useActionState } from "react";
+import { useState } from "react";
 
 import { createAccount, signIn, type AuthFormState } from "@/app/(auth)/login/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const initialState: AuthFormState = {};
+const emptyState: AuthFormState = {};
 
-export function LoginForm() {
+export function LoginForm({
+  initialState = emptyState,
+}: {
+  initialState?: AuthFormState;
+}) {
   const [signInState, signInAction, signInPending] = useActionState(
     signIn,
     initialState,
@@ -18,13 +23,20 @@ export function LoginForm() {
     createAccount,
     initialState,
   );
+  const [lastSubmitted, setLastSubmitted] = useState<"signIn" | "create" | null>(null);
 
   const pending = signInPending || createPending;
-  const error = signInState.error || createState.error;
-  const notice = signInState.notice || createState.notice;
+  const activeState =
+    lastSubmitted === "create"
+      ? createState
+      : lastSubmitted === "signIn"
+        ? signInState
+        : initialState;
+  const error = activeState.error;
+  const notice = activeState.notice;
 
   return (
-    <form className="mt-8 space-y-5">
+    <form action={signInAction} className="mt-8 space-y-5">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -57,13 +69,24 @@ export function LoginForm() {
         </p>
       ) : null}
       {notice ? (
-        <p id="auth-notice" className="text-sm text-muted-foreground" role="status">
+        <p
+          id="auth-notice"
+          className="text-sm text-muted-foreground"
+          role="status"
+          aria-live="polite"
+        >
           {notice}
         </p>
       ) : null}
 
       <div className="space-y-3">
-        <Button type="submit" className="w-full" formAction={signInAction} disabled={pending}>
+        <Button
+          type="submit"
+          className="w-full"
+          formAction={signInAction}
+          disabled={pending}
+          onClick={() => setLastSubmitted("signIn")}
+        >
           {signInPending ? "Signing in…" : "Sign in"}
         </Button>
         <Button
@@ -72,6 +95,7 @@ export function LoginForm() {
           className="w-full"
           formAction={createAction}
           disabled={pending}
+          onClick={() => setLastSubmitted("create")}
         >
           {createPending ? "Creating account…" : "Create account"}
         </Button>

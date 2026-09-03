@@ -10,7 +10,16 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default async function LoginPage() {
+function readSearchParam(
+  value: string | string[] | undefined,
+) {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: PageProps<"/login">) {
+  const params = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,6 +28,11 @@ export default async function LoginPage() {
   if (user) {
     redirect("/");
   }
+
+  const initialState = {
+    error: readSearchParam(params.error),
+    notice: readSearchParam(params.notice),
+  };
 
   return (
     <div className="flex min-h-full items-center justify-center px-6 py-16">
@@ -33,7 +47,7 @@ export default async function LoginPage() {
           account.
         </p>
 
-        <LoginForm />
+        <LoginForm initialState={initialState} />
 
         <p className="mt-8 text-sm text-muted-foreground">
           <Link href="/" className="underline-offset-4 hover:underline hover:text-foreground">

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { AnalyticsEvent, trackEvent } from "@/lib/analytics";
+import { getAppUrl } from "@/lib/app-url";
 import { isValidEmail, readTrimmed } from "@/lib/form";
 import { createClient } from "@/lib/supabase/server";
 
@@ -69,6 +70,9 @@ export async function createAccount(
   const { data, error } = await supabase.auth.signUp({
     email: parsed.email,
     password: parsed.password,
+    options: {
+      emailRedirectTo: `${getAppUrl()}/auth/confirm?next=/`,
+    },
   });
 
   if (error) {
@@ -86,7 +90,7 @@ export async function createAccount(
   if (!data.session) {
     return {
       notice:
-        "Account created. Confirm the email address before signing in, if confirmation is required.",
+        "Account created. Check your inbox for the verification email, then use the link to finish signing in.",
     };
   }
 
