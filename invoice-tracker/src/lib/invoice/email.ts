@@ -15,7 +15,7 @@ export function defaultInvoiceEmail({
 }) {
   const greeting = firstNameFrom(clientName);
   const payLine = publicUrl
-    ? " You can view the invoice and pay online using the button in this email."
+    ? " You can view the invoice and payment instructions using the button in this email."
     : "";
 
   return {

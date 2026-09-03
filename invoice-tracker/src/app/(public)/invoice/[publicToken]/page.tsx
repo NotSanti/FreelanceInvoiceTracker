@@ -5,7 +5,6 @@ import { InvoiceDocumentView } from "@/components/invoices/invoice-document";
 import { PublicPayButton } from "@/components/invoices/public-pay-button";
 import { MoneyValue } from "@/components/shared/money-value";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Button } from "@/components/ui/button";
 import { buildPublicInvoiceDocument } from "@/lib/invoice/document";
 import { formatISODateLong } from "@/lib/dates";
 import {
@@ -13,7 +12,7 @@ import {
   isPublicToken,
   markPublicInvoiceViewed,
 } from "@/lib/public-invoice";
-import { isStripeConfigured } from "@/lib/stripe/env";
+import { isStripeCheckoutOffered } from "@/lib/stripe/env";
 import { paymentMethodLabel } from "@/config/payments";
 
 export async function generateMetadata({
@@ -29,10 +28,8 @@ export async function generateMetadata({
 
 export default async function PublicInvoicePage({
   params,
-  searchParams,
 }: PageProps<"/invoice/[publicToken]">) {
   const { publicToken } = await params;
-  const query = await searchParams;
 
   if (!isPublicToken(publicToken)) {
     notFound();
@@ -46,9 +43,8 @@ export default async function PublicInvoicePage({
   await markPublicInvoiceViewed(publicToken);
 
   const document = buildPublicInvoiceDocument(record);
-  const checkout = Array.isArray(query.checkout) ? query.checkout[0] : query.checkout;
   const paid = record.remainingCents === 0;
-  const stripeReady = isStripeConfigured();
+  const offerCardCheckout = isStripeCheckoutOffered();
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 space-y-8">
@@ -64,25 +60,10 @@ export default async function PublicInvoicePage({
         </div>
         {paid ? (
           <p className="text-sm text-muted-foreground">This invoice is paid.</p>
-        ) : stripeReady ? (
+        ) : offerCardCheckout ? (
           <PublicPayButton publicToken={publicToken} />
-        ) : (
-          <Button type="button" size="sm" disabled>
-            Pay invoice
-          </Button>
-        )}
+        ) : null}
       </div>
-
-      {checkout === "success" && !paid ? (
-        <p className="text-sm text-muted-foreground">
-          Payment is processing. This page will show Paid once Stripe confirms it.
-        </p>
-      ) : null}
-      {checkout === "cancelled" ? (
-        <p className="text-sm text-muted-foreground">
-          Checkout was cancelled. You can try again when you are ready.
-        </p>
-      ) : null}
 
       <section className="grid max-w-sm gap-2 text-sm sm:grid-cols-2">
         <div>
@@ -101,7 +82,40 @@ export default async function PublicInvoicePage({
 
       <div className="border-t border-border" />
 
-      <InvoiceDocumentView document={document} />
+      <InvoiceDocumentView
+        document={document}
+        hidePaymentInstructions={!paid}
+      />
+
+      {!paid ? (
+        <>
+          <div className="border-t border-border" />
+          <section className="space-y-5">
+            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+              How to pay
+            </h2>
+            <div>
+              <p className="text-sm text-muted-foreground">Amount due</p>
+              <p className="mt-1">
+                <MoneyValue
+                  amountCents={record.remainingCents}
+                  currency={record.invoice.currency}
+                  size="lg"
+                />
+              </p>
+            </div>
+            {record.invoice.payment_instructions ? (
+              <p className="whitespace-pre-wrap text-base leading-7 sm:text-lg sm:leading-8">
+                {record.invoice.payment_instructions}
+              </p>
+            ) : (
+              <p className="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+                Pay by e-transfer using the details the sender provided.
+              </p>
+            )}
+          </section>
+        </>
+      ) : null}
 
       {record.payments.length > 0 ? (
         <>

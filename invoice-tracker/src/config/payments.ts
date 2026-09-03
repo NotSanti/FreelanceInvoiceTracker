@@ -8,6 +8,9 @@ export const MANUAL_PAYMENT_METHODS = [
 
 export type ManualPaymentMethod = (typeof MANUAL_PAYMENT_METHODS)[number]["value"];
 
+/** Card checkout stays in the codebase but is not offered until live Stripe is ready. */
+export const STRIPE_CHECKOUT_ENABLED = false;
+
 export function paymentMethodLabel(method: string) {
   if (method === "stripe") {
     return "Stripe";

@@ -2,8 +2,10 @@ import type { InvoiceDocumentModel } from "@/lib/invoice/document";
 
 export function InvoiceDocumentView({
   document,
+  hidePaymentInstructions = false,
 }: {
   document: InvoiceDocumentModel;
+  hidePaymentInstructions?: boolean;
 }) {
   return (
     <article className="text-[13px] leading-6 text-foreground">
@@ -148,7 +150,7 @@ export function InvoiceDocumentView({
         </section>
       ) : null}
 
-      {document.paymentInstructions ? (
+      {document.paymentInstructions && !hidePaymentInstructions ? (
         <section className="mt-8 break-inside-avoid">
           <h2 className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
             Payment instructions

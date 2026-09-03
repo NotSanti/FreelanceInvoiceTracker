@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { STRIPE_CHECKOUT_ENABLED } from "@/config/payments";
 import { publicInvoiceUrl } from "@/lib/app-url";
 import { remainingCentsFromPayments } from "@/lib/payments/totals";
 import { getInvoiceCheckoutState } from "@/lib/public-invoice";
@@ -7,6 +8,13 @@ import { getStripe } from "@/lib/stripe/client";
 import { getServiceRoleKey } from "@/lib/supabase/service";
 
 export async function POST(request: Request) {
+  if (!STRIPE_CHECKOUT_ENABLED) {
+    return NextResponse.json(
+      { error: "Card checkout isn't available." },
+      { status: 503 },
+    );
+  }
+
   const stripe = getStripe();
   if (!stripe || "error" in getServiceRoleKey()) {
     return NextResponse.json({ error: "Stripe isn't configured yet." }, { status: 503 });
