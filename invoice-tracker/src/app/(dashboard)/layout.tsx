@@ -7,6 +7,7 @@ import {
 } from "@/components/layout/app-shell";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { FlashToast } from "@/components/shared/flash-toast";
+import { SiteTelemetry } from "@/components/shared/site-telemetry";
 import { getAccountLabel, getProfile, requireUser } from "@/lib/auth/session";
 
 export default async function DashboardLayout({
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
       <Suspense fallback={null}>
         <FlashToast />
       </Suspense>
+      <SiteTelemetry />
     </div>
   );
 }

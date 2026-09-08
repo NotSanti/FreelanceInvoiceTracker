@@ -164,6 +164,8 @@ export type Database = {
           sent_at: string | null;
           status: "draft" | "sent" | "paid" | "void";
           stripe_checkout_session_id: string | null;
+          stripe_checkout_amount_cents: number | null;
+          stripe_checkout_expires_at: string | null;
           stripe_payment_intent_id: string | null;
           stripe_payment_url: string | null;
           subtotal_cents: number;
@@ -196,6 +198,8 @@ export type Database = {
           sent_at?: string | null;
           status?: "draft" | "sent" | "paid" | "void";
           stripe_checkout_session_id?: string | null;
+          stripe_checkout_amount_cents?: number | null;
+          stripe_checkout_expires_at?: string | null;
           stripe_payment_intent_id?: string | null;
           stripe_payment_url?: string | null;
           subtotal_cents?: number;
@@ -228,6 +232,8 @@ export type Database = {
           sent_at?: string | null;
           status?: "draft" | "sent" | "paid" | "void";
           stripe_checkout_session_id?: string | null;
+          stripe_checkout_amount_cents?: number | null;
+          stripe_checkout_expires_at?: string | null;
           stripe_payment_intent_id?: string | null;
           stripe_payment_url?: string | null;
           subtotal_cents?: number;
@@ -246,11 +252,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "invoices_client_id_fkey";
-            columns: ["client_id"];
+            foreignKeyName: "invoices_client_owner_fkey";
+            columns: ["client_id", "user_id"];
             isOneToOne: false;
             referencedRelation: "clients";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "user_id"];
           },
         ];
       };
@@ -393,6 +399,24 @@ export type Database = {
       };
       get_invoice_checkout_state: {
         Args: { p_token: string };
+        Returns: Json;
+      };
+      rotate_invoice_public_token: {
+        Args: { p_invoice_id: string };
+        Returns: string;
+      };
+      record_stripe_checkout_payment: {
+        Args: {
+          p_event_id: string;
+          p_event_type: string;
+          p_session_id: string;
+          p_invoice_id: string;
+          p_user_id: string;
+          p_amount_cents: number;
+          p_currency: string;
+          p_payment_intent_id: string | null;
+          p_paid_on: string;
+        };
         Returns: Json;
       };
     };

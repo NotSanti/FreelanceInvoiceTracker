@@ -1,3 +1,5 @@
+import "server-only";
+
 export const DEFAULT_FROM_EMAIL = "invoices@independentpocket.com";
 
 export function getEmailEnv() {

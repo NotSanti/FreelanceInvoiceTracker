@@ -1,19 +1,16 @@
+import "server-only";
+
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient, getServiceRoleKey } from "@/lib/supabase/service";
 import { paidCentsFromPayments } from "@/lib/payments/totals";
+import { isPublicToken } from "@/lib/public-invoice-token";
 import type { Json } from "@/types/database";
 
-const TOKEN_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function isPublicToken(value: string) {
-  return TOKEN_PATTERN.test(value);
-}
+export { isPublicToken, redactPublicInvoicePath } from "@/lib/public-invoice-token";
 
 export type PublicInvoiceRecord = {
   invoice: {
     invoice_number: string;
-    public_token: string;
     status: "sent" | "paid";
     currency: string;
     issue_date: string;
@@ -128,6 +125,10 @@ export type InvoiceCheckoutState = {
   total_cents: number;
   status: "sent" | "paid";
   paid_cents: number;
+  stripe_checkout_session_id: string | null;
+  stripe_checkout_amount_cents: number | null;
+  stripe_checkout_expires_at: string | null;
+  stripe_payment_url: string | null;
 };
 
 export async function getInvoiceCheckoutState(publicToken: string) {
@@ -161,5 +162,21 @@ export async function getInvoiceCheckoutState(publicToken: string) {
     total_cents: Number(row.total_cents),
     status: row.status === "paid" ? "paid" : "sent",
     paid_cents: Number(row.paid_cents),
+    stripe_checkout_session_id:
+      typeof row.stripe_checkout_session_id === "string"
+        ? row.stripe_checkout_session_id
+        : null,
+    stripe_checkout_amount_cents:
+      typeof row.stripe_checkout_amount_cents === "number"
+        ? row.stripe_checkout_amount_cents
+        : row.stripe_checkout_amount_cents == null
+          ? null
+          : Number(row.stripe_checkout_amount_cents),
+    stripe_checkout_expires_at:
+      typeof row.stripe_checkout_expires_at === "string"
+        ? row.stripe_checkout_expires_at
+        : null,
+    stripe_payment_url:
+      typeof row.stripe_payment_url === "string" ? row.stripe_payment_url : null,
   } satisfies InvoiceCheckoutState;
 }

@@ -1,3 +1,5 @@
+import "server-only";
+
 import Stripe from "stripe";
 
 import { getStripeEnv } from "@/lib/stripe/env";

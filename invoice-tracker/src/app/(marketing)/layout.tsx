@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { BrandMark } from "@/components/layout/brand-mark";
+import { SiteTelemetry } from "@/components/shared/site-telemetry";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -49,6 +50,7 @@ export default async function MarketingLayout({
           </div>
         </div>
       </footer>
+      <SiteTelemetry />
     </div>
   );
 }

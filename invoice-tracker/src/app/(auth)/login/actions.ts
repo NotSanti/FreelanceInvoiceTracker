@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { AnalyticsEvent, trackEvent } from "@/lib/analytics";
 import { getAppUrl } from "@/lib/app-url";
+import { isPublicSignupAllowed } from "@/config/auth";
 import { isValidEmail, readTrimmed } from "@/lib/form";
 import { createClient } from "@/lib/supabase/server";
 
@@ -57,6 +58,10 @@ export async function createAccount(
   _previous: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
+  if (!isPublicSignupAllowed()) {
+    return { error: "New account registration is disabled." };
+  }
+
   const parsed = credentialsFromForm(formData);
   if ("error" in parsed) {
     return { error: parsed.error };
