@@ -561,6 +561,36 @@ export async function voidInvoice(formData: FormData) {
   redirect(`/invoices/${id}?toast=voided`);
 }
 
+export async function rotatePublicInvoiceLink(invoiceId: string) {
+  const { supabase, user } = await requireUser();
+
+  if (!isInvoiceId(invoiceId)) {
+    return { error: "This invoice could not be found." };
+  }
+
+  const invoice = await getInvoice(invoiceId);
+  if (!invoice || invoice.user_id !== user.id) {
+    return { error: "This invoice could not be found." };
+  }
+
+  const previousToken = invoice.public_token;
+  const { data, error } = await supabase.rpc("rotate_invoice_public_token", {
+    p_invoice_id: invoiceId,
+  });
+
+  if (error || !data) {
+    console.error("rotate_public_link_failed", {
+      invoiceId,
+      code: error?.code,
+    });
+    return { error: "We couldn't rotate this public link." };
+  }
+
+  revalidateInvoicePaths(invoiceId, previousToken);
+  revalidateInvoicePaths(invoiceId, String(data));
+  return { ok: true as const };
+}
+
 export async function duplicateInvoice(formData: FormData) {
   const { supabase, user } = await requireUser();
   const id = readTrimmed(formData, "id");

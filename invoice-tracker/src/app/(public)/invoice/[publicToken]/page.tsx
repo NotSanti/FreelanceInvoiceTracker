@@ -15,14 +15,29 @@ import {
 import { isStripeCheckoutOffered } from "@/lib/stripe/env";
 import { paymentMethodLabel } from "@/config/payments";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: PageProps<"/invoice/[publicToken]">): Promise<Metadata> {
   const { publicToken } = await params;
-  const record = await getPublicInvoice(publicToken);
+  const record = isPublicToken(publicToken)
+    ? await getPublicInvoice(publicToken)
+    : null;
 
   return {
     title: record ? `Invoice ${record.invoice.invoice_number}` : "Invoice",
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+        noimageindex: true,
+        noarchive: true,
+      },
+    },
   };
 }
 

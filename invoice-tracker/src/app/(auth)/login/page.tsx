@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/app/(auth)/login/login-form";
 import { BrandMark } from "@/components/layout/brand-mark";
+import { isPublicSignupAllowed } from "@/config/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default async function LoginPage({
     error: readSearchParam(params.error),
     notice: readSearchParam(params.notice),
   };
+  const allowSignup = isPublicSignupAllowed();
 
   return (
     <div className="flex min-h-full items-center justify-center px-6 py-16">
@@ -59,15 +61,17 @@ export default async function LoginPage({
           </Link>
         </p>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          New here?{" "}
-          <Link
-            href="/signup"
-            className="underline-offset-4 hover:underline hover:text-foreground"
-          >
-            Create an account
-          </Link>
-        </p>
+        {allowSignup ? (
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            New here?{" "}
+            <Link
+              href="/signup"
+              className="underline-offset-4 hover:underline hover:text-foreground"
+            >
+              Create an account
+            </Link>
+          </p>
+        ) : null}
       </div>
     </div>
   );

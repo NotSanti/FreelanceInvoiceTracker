@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: invoice-tracker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddc25969a7c7a2b8ea577c4 # v5.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: invoice-tracker/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Audit
+        run: npm audit --audit-level=high
+
+  database:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: invoice-tracker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddc25969a7c7a2b8ea577c4 # v5.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: invoice-tracker/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Supabase DB reset and tests
+        run: |
+          npx supabase start
+          npx supabase db reset --yes
+          npx supabase test db

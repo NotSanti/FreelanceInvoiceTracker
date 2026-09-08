@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { SignupForm } from "@/app/(auth)/signup/signup-form";
 import { BrandMark } from "@/components/layout/brand-mark";
+import { isPublicSignupAllowed } from "@/config/auth";
 
 export const metadata: Metadata = {
   title: "Sign up",
+  robots: { index: false, follow: false },
 };
 
 export default function SignupPage() {
+  if (!isPublicSignupAllowed()) {
+    notFound();
+  }
+
   return (
     <div className="flex min-h-full items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
@@ -36,4 +43,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

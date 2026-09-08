@@ -1,3 +1,5 @@
+import { LIMITS } from "@/config/limits";
+
 export function parseMoneyToCents(value: string) {
   const trimmed = value.trim().replace(/[$\s,]/g, "");
   if (!trimmed) {
@@ -9,9 +11,18 @@ export function parseMoneyToCents(value: string) {
   }
 
   const [whole, fraction = ""] = trimmed.split(".");
-  return {
-    value: Number(whole) * 100 + Number(fraction.padEnd(2, "0").slice(0, 2)),
-  } as const;
+  const cents =
+    Number(whole) * 100 + Number(fraction.padEnd(2, "0").slice(0, 2));
+
+  if (!Number.isFinite(cents) || !Number.isSafeInteger(cents)) {
+    return { error: "Amount is too large." } as const;
+  }
+
+  if (cents < 0 || cents > LIMITS.moneyMaxCents) {
+    return { error: "Amount is out of range." } as const;
+  }
+
+  return { value: cents } as const;
 }
 
 export function formatCentsForInput(cents: number) {

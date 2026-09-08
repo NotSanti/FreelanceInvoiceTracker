@@ -3,6 +3,7 @@ import {
   MAX_INVOICE_LINE_ITEMS,
   type InvoiceCurrency,
 } from "@/config/invoices";
+import { LIMITS, withinLength } from "@/config/limits";
 import { isISODate } from "@/lib/dates";
 import { emptyToNull, parseQuantity, parseTaxRate, readTrimmed } from "@/lib/form";
 import { isClientId } from "@/lib/clients/queries";
@@ -100,6 +101,9 @@ function parseLineItems(raw: string): {
 
     if (!description) {
       fieldErrors[`item_${index}_description`] = "Enter a description.";
+    } else if (!withinLength(description, LIMITS.invoiceLineDescription)) {
+      fieldErrors[`item_${index}_description`] =
+        `Keep descriptions under ${LIMITS.invoiceLineDescription} characters.`;
     }
 
     const quantity = parseQuantity(quantityValue);
@@ -114,15 +118,25 @@ function parseLineItems(raw: string): {
 
     if (
       description &&
+      withinLength(description, LIMITS.invoiceLineDescription) &&
       !("error" in quantity) &&
       !("error" in rate)
     ) {
-      items.push({
-        description,
-        quantity: quantity.value,
-        unitPriceCents: rate.value,
-        amountCents: lineAmountCents(quantity.value, rate.value),
-      });
+      const amountCents = lineAmountCents(quantity.value, rate.value);
+      if (
+        !Number.isSafeInteger(amountCents) ||
+        amountCents < 0 ||
+        amountCents > LIMITS.moneyMaxCents
+      ) {
+        fieldErrors[`item_${index}_rate`] = "Line total is out of range.";
+      } else {
+        items.push({
+          description,
+          quantity: quantity.value,
+          unitPriceCents: rate.value,
+          amountCents,
+        });
+      }
     }
   });
 
@@ -185,6 +199,27 @@ export function parseInvoiceDraft(formData: FormData): {
     return { fieldErrors };
   }
 
+  const taxName = readTrimmed(formData, "tax_name");
+  const notes = readTrimmed(formData, "notes");
+  const paymentInstructions = readTrimmed(formData, "payment_instructions");
+
+  if (taxName && !withinLength(taxName, LIMITS.taxName)) {
+    fieldErrors.tax_name = `Keep tax names under ${LIMITS.taxName} characters.`;
+  }
+  if (notes && !withinLength(notes, LIMITS.notes)) {
+    fieldErrors.notes = `Keep notes under ${LIMITS.notes} characters.`;
+  }
+  if (
+    paymentInstructions &&
+    !withinLength(paymentInstructions, LIMITS.paymentInstructions)
+  ) {
+    fieldErrors.payment_instructions = `Keep payment instructions under ${LIMITS.paymentInstructions} characters.`;
+  }
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return { fieldErrors };
+  }
+
   const taxRate = taxRateResult.value;
   const totals = calculateInvoiceTotals({
     items: lineItems.items.map((item) => ({
@@ -194,6 +229,23 @@ export function parseInvoiceDraft(formData: FormData): {
     discountCents: discountResult.value,
     taxRatePercent: taxRate,
   });
+
+  for (const [label, cents] of [
+    ["Subtotal", totals.subtotalCents],
+    ["Discount", totals.discountCents],
+    ["Tax", totals.taxCents],
+    ["Total", totals.totalCents],
+  ] as const) {
+    if (
+      !Number.isSafeInteger(cents) ||
+      cents < 0 ||
+      cents > LIMITS.moneyMaxCents
+    ) {
+      fieldErrors.items = `${label} is out of range.`;
+      return { fieldErrors };
+    }
+  }
+
   const salesTax = invoiceSalesTaxFromTotals({
     issueDate,
     subtotalCents: totals.subtotalCents,
@@ -210,10 +262,10 @@ export function parseInvoiceDraft(formData: FormData): {
       dueDate: dueDate || null,
       currency,
       discountCents: totals.discountCents,
-      taxName: emptyToNull(readTrimmed(formData, "tax_name")),
+      taxName: emptyToNull(taxName),
       taxRate,
-      notes: emptyToNull(readTrimmed(formData, "notes")),
-      paymentInstructions: emptyToNull(readTrimmed(formData, "payment_instructions")),
+      notes: emptyToNull(notes),
+      paymentInstructions: emptyToNull(paymentInstructions),
       items: lineItems.items,
       totals,
       salesTax,

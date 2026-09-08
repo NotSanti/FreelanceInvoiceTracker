@@ -8,6 +8,7 @@ import { InvoiceDetailView } from "@/components/invoices/invoice-detail";
 import { InvoiceEmailPreviewDialog } from "@/components/invoices/invoice-email-preview";
 import { RecordPaymentDialog } from "@/components/invoices/record-payment-dialog";
 import { ResendReceiptButton } from "@/components/invoices/resend-receipt-button";
+import { RotatePublicLinkButton } from "@/components/invoices/rotate-public-link-button";
 import { SendInvoiceDialog } from "@/components/invoices/send-invoice-dialog";
 import { VoidInvoiceButton } from "@/components/invoices/void-invoice-button";
 import { PageContainer } from "@/components/shared/page-container";
@@ -91,6 +92,7 @@ export default async function InvoiceDetailPage({
           <a href={`/invoices/${invoice.id}/pdf`}>Download PDF</a>
         </Button>
         <CopyPublicLinkButton url={publicUrl} />
+        <RotatePublicLinkButton invoiceId={invoice.id} />
         <form action={duplicateInvoice}>
           <input type="hidden" name="id" value={invoice.id} />
           <Button type="submit" size="sm" variant="outline">

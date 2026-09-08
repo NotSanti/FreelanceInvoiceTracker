@@ -1,10 +1,12 @@
+import { LIMITS } from "@/config/limits";
+
 export const DEFAULT_INVOICE_DUE_DAYS = 14;
 
 export const INVOICE_CURRENCIES = ["CAD", "USD"] as const;
 
 export type InvoiceCurrency = (typeof INVOICE_CURRENCIES)[number];
 
-export const MAX_INVOICE_LINE_ITEMS = 40;
+export const MAX_INVOICE_LINE_ITEMS = LIMITS.invoiceLineCount;
 
 export const INVOICE_LIST_FILTERS = [
   { value: "all", label: "All" },
