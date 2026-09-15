@@ -1,7 +1,7 @@
 import {
   calculateBalanceRemaining,
 } from "@/lib/invoice/totals";
-import { formatISODateLong } from "@/lib/dates";
+import { formatISODateLong, isISODate } from "@/lib/dates";
 import { paymentMethodLabel } from "@/config/payments";
 import { MoneyValue } from "@/components/shared/money-value";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -13,6 +13,14 @@ function formatQuantity(quantity: number) {
 
 function clientLabel(invoice: InvoiceDetail) {
   return invoice.clients.company_name || invoice.clients.name;
+}
+
+function itemServiceDateLabel(serviceDate: string | null) {
+  if (!serviceDate) {
+    return null;
+  }
+  const iso = serviceDate.slice(0, 10);
+  return isISODate(iso) ? formatISODateLong(iso) : null;
 }
 
 function formatClientAddress(invoice: InvoiceDetail) {
@@ -33,6 +41,7 @@ export function InvoiceDetailView({ invoice }: { invoice: InvoiceDetail }) {
   const remainingCents = calculateBalanceRemaining(invoice.total_cents, paidCents);
   const taxLabel = invoice.tax_name || "Tax";
   const addressLines = formatClientAddress(invoice);
+  const showItemDates = invoice.invoice_items.some((item) => Boolean(item.service_date));
   const activity = [
     { at: invoice.created_at, label: "Invoice created" },
     invoice.sent_at ? { at: invoice.sent_at, label: "Invoice sent" } : null,
@@ -124,6 +133,11 @@ export function InvoiceDetailView({ invoice }: { invoice: InvoiceDetail }) {
                 <th scope="col" className="py-2 pr-4 font-medium">
                   Description
                 </th>
+                {showItemDates ? (
+                  <th scope="col" className="py-2 pr-4 font-medium">
+                    Date
+                  </th>
+                ) : null}
                 <th scope="col" className="py-2 pr-4 text-right font-medium">
                   Qty
                 </th>
@@ -139,6 +153,11 @@ export function InvoiceDetailView({ invoice }: { invoice: InvoiceDetail }) {
               {invoice.invoice_items.map((item) => (
                 <tr key={item.id} className="border-b border-border last:border-b-0">
                   <td className="py-3 pr-4">{item.description}</td>
+                  {showItemDates ? (
+                    <td className="py-3 pr-4 whitespace-nowrap tabular-nums text-muted-foreground">
+                      {itemServiceDateLabel(item.service_date) ?? "—"}
+                    </td>
+                  ) : null}
                   <td className="py-3 pr-4 text-right tabular-nums text-muted-foreground">
                     {formatQuantity(item.quantity)}
                   </td>

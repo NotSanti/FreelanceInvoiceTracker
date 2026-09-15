@@ -66,7 +66,7 @@ export default async function NewInvoicePage() {
           discount: "",
           notes: "",
           paymentInstructions: profile.payment_instructions ?? "",
-          items: [{ description: "", quantity: "1", rate: "" }],
+          items: [{ description: "", date: "", quantity: "1", rate: "" }],
         }}
       />
     </PageContainer>

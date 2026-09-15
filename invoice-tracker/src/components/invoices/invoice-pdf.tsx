@@ -109,6 +109,10 @@ const styles = StyleSheet.create({
     flexBasis: 0,
     paddingRight: 12,
   },
+  date: {
+    width: 78,
+    paddingRight: 10,
+  },
   qty: {
     width: 48,
     textAlign: "right",
@@ -227,6 +231,9 @@ export function InvoicePdfDocument({
           <Text style={[styles.tableHeaderText, styles.description]}>
             Description
           </Text>
+          {document.showItemDates ? (
+            <Text style={[styles.tableHeaderText, styles.date]}>Date</Text>
+          ) : null}
           <Text style={[styles.tableHeaderText, styles.qty]}>Qty</Text>
           <Text style={[styles.tableHeaderText, styles.money]}>Rate</Text>
           <Text style={[styles.tableHeaderText, styles.money]}>Amount</Text>
@@ -240,6 +247,11 @@ export function InvoicePdfDocument({
           document.items.map((item, index) => (
             <View key={`${item.description}-${index}`} style={styles.row}>
               <Text style={styles.description}>{item.description}</Text>
+              {document.showItemDates ? (
+                <Text style={[styles.date, styles.muted]}>
+                  {item.dateLabel ?? "—"}
+                </Text>
+              ) : null}
               <Text style={styles.qty}>{item.quantityLabel}</Text>
               <Text style={styles.money}>{item.rateLabel}</Text>
               <Text style={styles.money}>{item.amountLabel}</Text>

@@ -15,6 +15,12 @@ export function paymentMethodLabel(method: string) {
   if (method === "stripe") {
     return "Stripe";
   }
+  if (method === "square") {
+    return "Square";
+  }
+  if (method === "paypal") {
+    return "PayPal";
+  }
   return (
     MANUAL_PAYMENT_METHODS.find((option) => option.value === method)?.label ?? "Payment"
   );

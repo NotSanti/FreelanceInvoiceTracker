@@ -61,6 +61,7 @@ export type PublicInvoiceRecord = {
     unit_price_cents: number;
     amount_cents: number;
     position: number;
+    service_date: string | null;
   }>;
   payments: Array<{
     amount_cents: number;

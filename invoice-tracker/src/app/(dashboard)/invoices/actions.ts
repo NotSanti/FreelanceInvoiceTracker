@@ -131,6 +131,7 @@ export async function createInvoice(
       quantity: item.quantity,
       unit_price_cents: item.unitPriceCents,
       amount_cents: item.amountCents,
+      service_date: item.serviceDate,
       position,
     })),
   );
@@ -221,6 +222,7 @@ export async function updateInvoice(
       quantity: item.quantity,
       unit_price_cents: item.unitPriceCents,
       amount_cents: item.amountCents,
+      service_date: item.serviceDate,
       position,
     })),
   );
@@ -642,6 +644,7 @@ export async function duplicateInvoice(formData: FormData) {
         quantity: item.quantity,
         unit_price_cents: item.unit_price_cents,
         amount_cents: item.amount_cents,
+        service_date: item.service_date,
         position,
       })),
     );

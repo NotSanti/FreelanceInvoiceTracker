@@ -17,6 +17,7 @@ import { invoiceSalesTaxFromTotals, type SplitSalesTax } from "@/lib/tax/sales-t
 
 export type InvoiceDraftItem = {
   description: string;
+  serviceDate: string | null;
   quantity: number;
   unitPriceCents: number;
   amountCents: number;
@@ -44,6 +45,7 @@ export type InvoiceFormState = {
 
 type RawLineItem = {
   description?: unknown;
+  date?: unknown;
   quantity?: unknown;
   rate?: unknown;
 };
@@ -91,9 +93,10 @@ function parseLineItems(raw: string): {
   parsed.forEach((entry, index) => {
     const line = entry as RawLineItem;
     const description = typeof line.description === "string" ? line.description.trim() : "";
+    const dateValue = typeof line.date === "string" ? line.date.trim() : "";
     const quantityValue = typeof line.quantity === "string" ? line.quantity : "";
     const rateValue = typeof line.rate === "string" ? line.rate : "";
-    const isEmpty = !description && !quantityValue.trim() && !rateValue.trim();
+    const isEmpty = !description && !dateValue && !quantityValue.trim() && !rateValue.trim();
 
     if (isEmpty) {
       return;
@@ -116,11 +119,21 @@ function parseLineItems(raw: string): {
       fieldErrors[`item_${index}_rate`] = rate.error;
     }
 
+    let serviceDate: string | null = null;
+    if (dateValue) {
+      if (!isISODate(dateValue)) {
+        fieldErrors[`item_${index}_date`] = "Enter a valid date.";
+      } else {
+        serviceDate = dateValue;
+      }
+    }
+
     if (
       description &&
       withinLength(description, LIMITS.invoiceLineDescription) &&
       !("error" in quantity) &&
-      !("error" in rate)
+      !("error" in rate) &&
+      !(dateValue && !serviceDate)
     ) {
       const amountCents = lineAmountCents(quantity.value, rate.value);
       if (
@@ -132,6 +145,7 @@ function parseLineItems(raw: string): {
       } else {
         items.push({
           description,
+          serviceDate,
           quantity: quantity.value,
           unitPriceCents: rate.value,
           amountCents,

@@ -76,6 +76,11 @@ export function InvoiceDocumentView({
             <th scope="col" className="py-2 pr-4 font-medium">
               Description
             </th>
+            {document.showItemDates ? (
+              <th scope="col" className="py-2 pr-4 font-medium">
+                Date
+              </th>
+            ) : null}
             <th scope="col" className="py-2 pr-4 text-right font-medium">
               Qty
             </th>
@@ -90,7 +95,10 @@ export function InvoiceDocumentView({
         <tbody>
           {document.items.length === 0 ? (
             <tr>
-              <td colSpan={4} className="py-3 text-muted-foreground">
+              <td
+                colSpan={document.showItemDates ? 5 : 4}
+                className="py-3 text-muted-foreground"
+              >
                 No line items
               </td>
             </tr>
@@ -101,6 +109,11 @@ export function InvoiceDocumentView({
                 className="border-b border-border last:border-b-0"
               >
                 <td className="py-3 pr-4 break-words">{item.description}</td>
+                {document.showItemDates ? (
+                  <td className="py-3 pr-4 whitespace-nowrap tabular-nums text-muted-foreground">
+                    {item.dateLabel ?? "—"}
+                  </td>
+                ) : null}
                 <td className="py-3 pr-4 text-right tabular-nums whitespace-nowrap">
                   {item.quantityLabel}
                 </td>

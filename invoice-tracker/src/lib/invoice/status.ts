@@ -26,6 +26,10 @@ export function getDisplayStatus({
     paidCents ?? paidCentsFromStoredStatus(status, totalCents),
   );
 
+  if (remainingCents === 0 && totalCents > 0) {
+    return "paid";
+  }
+
   if (dueDate && remainingCents > 0 && dueDate < today) {
     return "overdue";
   }

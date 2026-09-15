@@ -32,6 +32,7 @@ const selectClassName =
 type LineItemDraft = {
   key: string;
   description: string;
+  date: string;
   quantity: string;
   rate: string;
 };
@@ -50,6 +51,7 @@ export type InvoiceEditorDefaults = {
   paymentInstructions: string;
   items: Array<{
     description: string;
+    date: string;
     quantity: string;
     rate: string;
   }>;
@@ -71,6 +73,7 @@ function newLine(key: string): LineItemDraft {
   return {
     key,
     description: "",
+    date: "",
     quantity: "1",
     rate: "",
   };
@@ -178,8 +181,9 @@ export function InvoiceEditor({
           type="hidden"
           name="line_items"
           value={JSON.stringify(
-            items.map(({ description, quantity, rate }) => ({
+            items.map(({ description, date, quantity, rate }) => ({
               description,
+              date,
               quantity,
               rate,
             })),
@@ -303,7 +307,7 @@ export function InvoiceEditor({
               return (
                 <div
                   key={item.key}
-                  className="grid gap-3 md:grid-cols-[minmax(0,1fr)_5.5rem_7rem_7rem_auto] md:items-start"
+                  className="grid gap-3 md:grid-cols-[minmax(0,1fr)_9.5rem_5.5rem_7rem_7rem_auto] md:items-start"
                 >
                   <div className="space-y-2">
                     <Label htmlFor={`item_${index}_description`}>
@@ -324,6 +328,25 @@ export function InvoiceEditor({
                     />
                     <FieldError
                       message={state.fieldErrors?.[`item_${index}_description`]}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`item_${index}_date`}>Date</Label>
+                    <Input
+                      id={`item_${index}_date`}
+                      type="date"
+                      value={item.date}
+                      onChange={(event) =>
+                        updateItem(item.key, { date: event.target.value })
+                      }
+                      aria-invalid={
+                        state.fieldErrors?.[`item_${index}_date`]
+                          ? true
+                          : undefined
+                      }
+                    />
+                    <FieldError
+                      message={state.fieldErrors?.[`item_${index}_date`]}
                     />
                   </div>
                   <div className="space-y-2">

@@ -1,4 +1,4 @@
-import { formatISODateLong } from "@/lib/dates";
+import { formatISODateLong, isISODate } from "@/lib/dates";
 import { formatCurrency } from "@/lib/money/format";
 import type { InvoiceDetail } from "@/lib/invoices/queries";
 import type { Profile } from "@/types/database";
@@ -14,6 +14,7 @@ export type AddressFields = {
 
 export type InvoiceDocumentLine = {
   description: string;
+  dateLabel: string | null;
   quantityLabel: string;
   rateLabel: string;
   amountLabel: string;
@@ -41,6 +42,7 @@ export type InvoiceDocumentModel = {
   clientEmail: string;
   clientAddress: string[];
   items: InvoiceDocumentLine[];
+  showItemDates: boolean;
   subtotalLabel: string;
   discountLabel: string | null;
   taxLines: InvoiceDocumentTaxLine[];
@@ -64,6 +66,14 @@ export function formatAddressLines(fields: AddressFields) {
 
 export function formatInvoiceQuantity(quantity: number) {
   return quantity.toLocaleString("en-CA", { maximumFractionDigits: 4 });
+}
+
+function lineDateLabel(serviceDate: string | null | undefined) {
+  if (!serviceDate) {
+    return null;
+  }
+  const iso = serviceDate.slice(0, 10);
+  return isISODate(iso) ? formatISODateLong(iso) : null;
 }
 
 function formatRate(rate: number | null) {
@@ -109,6 +119,13 @@ export function buildInvoiceDocument(
   profile: Profile,
 ): InvoiceDocumentModel {
   const money = (cents: number) => formatCurrency(cents, invoice.currency);
+  const items = invoice.invoice_items.map((item) => ({
+    description: item.description,
+    dateLabel: lineDateLabel(item.service_date),
+    quantityLabel: formatInvoiceQuantity(item.quantity),
+    rateLabel: money(item.unit_price_cents),
+    amountLabel: money(item.amount_cents),
+  }));
 
   return {
     invoiceNumber: invoice.invoice_number,
@@ -130,12 +147,8 @@ export function buildInvoiceDocument(
     clientCompany: invoice.clients.company_name,
     clientEmail: invoice.clients.email,
     clientAddress: formatAddressLines(invoice.clients),
-    items: invoice.invoice_items.map((item) => ({
-      description: item.description,
-      quantityLabel: formatInvoiceQuantity(item.quantity),
-      rateLabel: money(item.unit_price_cents),
-      amountLabel: money(item.amount_cents),
-    })),
+    items,
+    showItemDates: items.some((item) => Boolean(item.dateLabel)),
     subtotalLabel: money(invoice.subtotal_cents),
     discountLabel:
       invoice.discount_cents > 0 ? money(invoice.discount_cents) : null,
@@ -188,10 +201,18 @@ export function buildPublicInvoiceDocument({
     quantity: number;
     unit_price_cents: number;
     amount_cents: number;
+    service_date?: string | null;
   }>;
 }): InvoiceDocumentModel {
   const money = (cents: number) => formatCurrency(cents, invoice.currency);
   const showGstQstRegistration = Boolean(profile.is_gst_qst_registered);
+  const documentItems = items.map((item) => ({
+    description: item.description,
+    dateLabel: lineDateLabel(item.service_date),
+    quantityLabel: formatInvoiceQuantity(Number(item.quantity)),
+    rateLabel: money(Number(item.unit_price_cents)),
+    amountLabel: money(Number(item.amount_cents)),
+  }));
 
   return {
     invoiceNumber: invoice.invoice_number,
@@ -213,12 +234,8 @@ export function buildPublicInvoiceDocument({
     clientCompany: client.company_name,
     clientEmail: client.email,
     clientAddress: formatAddressLines(client),
-    items: items.map((item) => ({
-      description: item.description,
-      quantityLabel: formatInvoiceQuantity(Number(item.quantity)),
-      rateLabel: money(Number(item.unit_price_cents)),
-      amountLabel: money(Number(item.amount_cents)),
-    })),
+    items: documentItems,
+    showItemDates: documentItems.some((item) => Boolean(item.dateLabel)),
     subtotalLabel: money(Number(invoice.subtotal_cents)),
     discountLabel:
       Number(invoice.discount_cents) > 0 ? money(Number(invoice.discount_cents)) : null,

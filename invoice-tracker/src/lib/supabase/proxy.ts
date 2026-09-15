@@ -59,6 +59,10 @@ export async function updateSession(request: NextRequest) {
     pathname === "/api/stripe/webhook" ||
     pathname.startsWith("/api/stripe/checkout/") ||
     pathname.startsWith("/api/stripe/webhook/");
+  const isPaymentsPublicApi =
+    pathname === "/api/payments/checkout" ||
+    pathname.startsWith("/api/payments/callback/") ||
+    pathname.startsWith("/api/payments/webhooks/");
   const isMarketingAbout =
     pathname === "/about" || pathname.startsWith("/about/");
   const isMarketingWelcome =
@@ -71,6 +75,7 @@ export async function updateSession(request: NextRequest) {
     isAuthConfirmRoute ||
     isPublicInvoice ||
     isStripePublicApi ||
+    isPaymentsPublicApi ||
     isMarketingAbout ||
     isMarketingWelcome ||
     isPublicStatic;

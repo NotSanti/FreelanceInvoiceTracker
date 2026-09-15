@@ -25,6 +25,7 @@ export const LIMITS = {
   requestBodyBytes: {
     pushSubscribe: 8_192,
     stripeCheckout: 16_384,
+    paymentsCheckout: 16_384,
   },
 } as const;
 

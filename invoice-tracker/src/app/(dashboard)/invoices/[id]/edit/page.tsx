@@ -102,10 +102,11 @@ export default async function EditInvoicePage({
             invoice.invoice_items.length > 0
               ? invoice.invoice_items.map((item) => ({
                   description: item.description,
+                  date: item.service_date ?? "",
                   quantity: String(item.quantity),
                   rate: formatCentsForInput(item.unit_price_cents),
                 }))
-              : [{ description: "", quantity: "1", rate: "" }],
+              : [{ description: "", date: "", quantity: "1", rate: "" }],
         }}
       />
     </PageContainer>

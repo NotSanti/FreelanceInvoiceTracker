@@ -269,6 +269,7 @@ export type Database = {
           invoice_id: string;
           position: number;
           quantity: number;
+          service_date: string | null;
           unit_price_cents: number;
         };
         Insert: {
@@ -279,6 +280,7 @@ export type Database = {
           invoice_id: string;
           position?: number;
           quantity?: number;
+          service_date?: string | null;
           unit_price_cents: number;
         };
         Update: {
@@ -289,6 +291,7 @@ export type Database = {
           invoice_id?: string;
           position?: number;
           quantity?: number;
+          service_date?: string | null;
           unit_price_cents?: number;
         };
         Relationships: [
@@ -308,8 +311,14 @@ export type Database = {
           currency: string;
           id: string;
           invoice_id: string;
-          method: "e-transfer" | "cash" | "cheque" | "bank_transfer" | "other" | "stripe";
+          method: "e-transfer" | "cash" | "cheque" | "bank_transfer" | "other" | "stripe" | "square" | "paypal";
           paid_on: string;
+          provider: "stripe" | "paypal" | "square" | null;
+          provider_account_id: string | null;
+          provider_checkout_id: string | null;
+          provider_fee_cents: number | null;
+          provider_metadata: Json;
+          provider_payment_id: string | null;
           reference: string | null;
           stripe_checkout_session_id: string | null;
           stripe_payment_intent_id: string | null;
@@ -321,8 +330,14 @@ export type Database = {
           currency?: string;
           id?: string;
           invoice_id: string;
-          method: "e-transfer" | "cash" | "cheque" | "bank_transfer" | "other" | "stripe";
+          method: "e-transfer" | "cash" | "cheque" | "bank_transfer" | "other" | "stripe" | "square" | "paypal";
           paid_on: string;
+          provider?: "stripe" | "paypal" | "square" | null;
+          provider_account_id?: string | null;
+          provider_checkout_id?: string | null;
+          provider_fee_cents?: number | null;
+          provider_metadata?: Json;
+          provider_payment_id?: string | null;
           reference?: string | null;
           stripe_checkout_session_id?: string | null;
           stripe_payment_intent_id?: string | null;
@@ -334,8 +349,14 @@ export type Database = {
           currency?: string;
           id?: string;
           invoice_id?: string;
-          method?: "e-transfer" | "cash" | "cheque" | "bank_transfer" | "other" | "stripe";
+          method?: "e-transfer" | "cash" | "cheque" | "bank_transfer" | "other" | "stripe" | "square" | "paypal";
           paid_on?: string;
+          provider?: "stripe" | "paypal" | "square" | null;
+          provider_account_id?: string | null;
+          provider_checkout_id?: string | null;
+          provider_fee_cents?: number | null;
+          provider_metadata?: Json;
+          provider_payment_id?: string | null;
           reference?: string | null;
           stripe_checkout_session_id?: string | null;
           stripe_payment_intent_id?: string | null;
@@ -343,13 +364,284 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "payments_invoice_id_fkey";
-            columns: ["invoice_id"];
+            foreignKeyName: "payments_invoice_owner_fkey";
+            columns: ["invoice_id", "user_id"];
             isOneToOne: false;
             referencedRelation: "invoices";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
+      };
+      payment_provider_connections: {
+        Row: {
+          charges_enabled: boolean | null;
+          connected_at: string | null;
+          country: string | null;
+          created_at: string;
+          default_currency: string | null;
+          disconnected_at: string | null;
+          display_name: string | null;
+          email: string | null;
+          id: string;
+          payouts_enabled: boolean | null;
+          provider: "stripe" | "paypal" | "square";
+          provider_account_id: string;
+          provider_metadata: Json;
+          status: "pending" | "connected" | "restricted" | "disconnected" | "error";
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          charges_enabled?: boolean | null;
+          connected_at?: string | null;
+          country?: string | null;
+          created_at?: string;
+          default_currency?: string | null;
+          disconnected_at?: string | null;
+          display_name?: string | null;
+          email?: string | null;
+          id?: string;
+          payouts_enabled?: boolean | null;
+          provider: "stripe" | "paypal" | "square";
+          provider_account_id: string;
+          provider_metadata?: Json;
+          status?: "pending" | "connected" | "restricted" | "disconnected" | "error";
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          charges_enabled?: boolean | null;
+          connected_at?: string | null;
+          country?: string | null;
+          created_at?: string;
+          default_currency?: string | null;
+          disconnected_at?: string | null;
+          display_name?: string | null;
+          email?: string | null;
+          id?: string;
+          payouts_enabled?: boolean | null;
+          provider?: "stripe" | "paypal" | "square";
+          provider_account_id?: string;
+          provider_metadata?: Json;
+          status?: "pending" | "connected" | "restricted" | "disconnected" | "error";
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      payment_provider_connection_secrets: {
+        Row: {
+          access_token_ciphertext: string | null;
+          connection_id: string;
+          refresh_token_ciphertext: string | null;
+          token_expires_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          access_token_ciphertext?: string | null;
+          connection_id: string;
+          refresh_token_ciphertext?: string | null;
+          token_expires_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          access_token_ciphertext?: string | null;
+          connection_id?: string;
+          refresh_token_ciphertext?: string | null;
+          token_expires_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_provider_connection_secrets_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: true;
+            referencedRelation: "payment_provider_connections";
             referencedColumns: ["id"];
           },
         ];
+      };
+      invoice_payment_methods: {
+        Row: {
+          created_at: string;
+          enabled: boolean;
+          invoice_id: string;
+          provider: "stripe" | "paypal" | "square";
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          enabled?: boolean;
+          invoice_id: string;
+          provider: "stripe" | "paypal" | "square";
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          enabled?: boolean;
+          invoice_id?: string;
+          provider?: "stripe" | "paypal" | "square";
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payment_methods_invoice_owner_fkey";
+            columns: ["invoice_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
+      };
+      payment_checkouts: {
+        Row: {
+          amount_cents: number;
+          checkout_url: string | null;
+          created_at: string;
+          currency: string;
+          expires_at: string | null;
+          id: string;
+          invoice_id: string;
+          provider: "stripe" | "paypal" | "square";
+          provider_checkout_id: string | null;
+          provider_connection_id: string;
+          status:
+            | "created"
+            | "pending"
+            | "completed"
+            | "failed"
+            | "expired"
+            | "cancelled";
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          amount_cents: number;
+          checkout_url?: string | null;
+          created_at?: string;
+          currency: string;
+          expires_at?: string | null;
+          id?: string;
+          invoice_id: string;
+          provider: "stripe" | "paypal" | "square";
+          provider_checkout_id?: string | null;
+          provider_connection_id: string;
+          status?:
+            | "created"
+            | "pending"
+            | "completed"
+            | "failed"
+            | "expired"
+            | "cancelled";
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          amount_cents?: number;
+          checkout_url?: string | null;
+          created_at?: string;
+          currency?: string;
+          expires_at?: string | null;
+          id?: string;
+          invoice_id?: string;
+          provider?: "stripe" | "paypal" | "square";
+          provider_checkout_id?: string | null;
+          provider_connection_id?: string;
+          status?:
+            | "created"
+            | "pending"
+            | "completed"
+            | "failed"
+            | "expired"
+            | "cancelled";
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_checkouts_invoice_owner_fkey";
+            columns: ["invoice_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "payment_checkouts_connection_owner_fkey";
+            columns: ["provider_connection_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "payment_provider_connections";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
+      };
+      payment_webhook_events: {
+        Row: {
+          error_code: string | null;
+          event_type: string;
+          id: string;
+          processed_at: string | null;
+          processing_status: "received" | "processed" | "error";
+          provider: "stripe" | "paypal" | "square";
+          provider_account_id: string | null;
+          provider_event_id: string;
+          received_at: string;
+        };
+        Insert: {
+          error_code?: string | null;
+          event_type: string;
+          id?: string;
+          processed_at?: string | null;
+          processing_status?: "received" | "processed" | "error";
+          provider: "stripe" | "paypal" | "square";
+          provider_account_id?: string | null;
+          provider_event_id: string;
+          received_at?: string;
+        };
+        Update: {
+          error_code?: string | null;
+          event_type?: string;
+          id?: string;
+          processed_at?: string | null;
+          processing_status?: "received" | "processed" | "error";
+          provider?: "stripe" | "paypal" | "square";
+          provider_account_id?: string | null;
+          provider_event_id?: string;
+          received_at?: string;
+        };
+        Relationships: [];
+      };
+      payment_oauth_states: {
+        Row: {
+          consumed_at: string | null;
+          created_at: string;
+          expires_at: string;
+          hashed_state: string;
+          id: string;
+          provider: "stripe" | "paypal" | "square";
+          return_path: string | null;
+          user_id: string;
+        };
+        Insert: {
+          consumed_at?: string | null;
+          created_at?: string;
+          expires_at: string;
+          hashed_state: string;
+          id?: string;
+          provider: "stripe" | "paypal" | "square";
+          return_path?: string | null;
+          user_id: string;
+        };
+        Update: {
+          consumed_at?: string | null;
+          created_at?: string;
+          expires_at?: string;
+          hashed_state?: string;
+          id?: string;
+          provider?: "stripe" | "paypal" | "square";
+          return_path?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       push_subscriptions: {
         Row: {

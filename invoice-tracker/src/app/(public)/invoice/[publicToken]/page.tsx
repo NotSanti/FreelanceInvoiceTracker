@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { CheckoutReturnStatus } from "@/components/invoices/checkout-return-status";
 import { InvoiceDocumentView } from "@/components/invoices/invoice-document";
 import { PublicPayButton } from "@/components/invoices/public-pay-button";
 import { MoneyValue } from "@/components/shared/money-value";
@@ -8,11 +9,18 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { buildPublicInvoiceDocument } from "@/lib/invoice/document";
 import { formatISODateLong } from "@/lib/dates";
 import {
+  getInvoiceCheckoutState,
   getPublicInvoice,
   isPublicToken,
   markPublicInvoiceViewed,
 } from "@/lib/public-invoice";
-import { isStripeCheckoutOffered } from "@/lib/stripe/env";
+import { checkoutReturnFromSearchParam } from "@/lib/payments/checkout-return";
+import {
+  canOfferAnyProviderCheckout,
+  canOfferProviderCheckout,
+} from "@/lib/payments/connection-status";
+import { getProviderConnection } from "@/lib/payments/repository.server";
+import { isStripeTestMode } from "@/lib/stripe/env";
 import { paymentMethodLabel } from "@/config/payments";
 
 export const dynamic = "force-dynamic";
@@ -43,8 +51,10 @@ export async function generateMetadata({
 
 export default async function PublicInvoicePage({
   params,
+  searchParams,
 }: PageProps<"/invoice/[publicToken]">) {
   const { publicToken } = await params;
+  const checkoutReturn = checkoutReturnFromSearchParam((await searchParams).checkout);
 
   if (!isPublicToken(publicToken)) {
     notFound();
@@ -59,7 +69,27 @@ export default async function PublicInvoicePage({
 
   const document = buildPublicInvoiceDocument(record);
   const paid = record.remainingCents === 0;
-  const offerCardCheckout = isStripeCheckoutOffered();
+  const checkoutState = await getInvoiceCheckoutState(publicToken);
+  const stripeConnection = checkoutState
+    ? await getProviderConnection(checkoutState.user_id, "stripe")
+    : null;
+  const squareConnection = checkoutState
+    ? await getProviderConnection(checkoutState.user_id, "square")
+    : null;
+  const paypalConnection = checkoutState
+    ? await getProviderConnection(checkoutState.user_id, "paypal")
+    : null;
+  const stripeTestMode = isStripeTestMode();
+  const offerStripeCheckout = canOfferProviderCheckout(stripeConnection, {
+    stripeTestMode,
+  });
+  const offerSquareCheckout = canOfferProviderCheckout(squareConnection);
+  const offerPaypalCheckout = canOfferProviderCheckout(paypalConnection);
+  const showPaySecurely = canOfferAnyProviderCheckout(
+    [stripeConnection, squareConnection, paypalConnection],
+    { stripeTestMode },
+  );
+  const awaitingConfirmation = checkoutReturn === "success" && !paid;
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 space-y-8">
@@ -75,10 +105,12 @@ export default async function PublicInvoicePage({
         </div>
         {paid ? (
           <p className="text-sm text-muted-foreground">This invoice is paid.</p>
-        ) : offerCardCheckout ? (
-          <PublicPayButton publicToken={publicToken} />
         ) : null}
       </div>
+
+      {checkoutReturn ? (
+        <CheckoutReturnStatus checkout={checkoutReturn} paid={paid} />
+      ) : null}
 
       <section className="grid max-w-sm gap-2 text-sm sm:grid-cols-2">
         <div>
@@ -102,7 +134,7 @@ export default async function PublicInvoicePage({
         hidePaymentInstructions={!paid}
       />
 
-      {!paid ? (
+      {!paid && !awaitingConfirmation ? (
         <>
           <div className="border-t border-border" />
           <section className="space-y-5">
@@ -119,15 +151,46 @@ export default async function PublicInvoicePage({
                 />
               </p>
             </div>
-            {record.invoice.payment_instructions ? (
-              <p className="whitespace-pre-wrap text-base leading-7 sm:text-lg sm:leading-8">
-                {record.invoice.payment_instructions}
-              </p>
-            ) : (
-              <p className="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Pay by e-transfer using the details the sender provided.
-              </p>
-            )}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">E-transfer</p>
+              {record.invoice.payment_instructions ? (
+                <p className="whitespace-pre-wrap text-base leading-7 sm:text-lg sm:leading-8">
+                  {record.invoice.payment_instructions}
+                </p>
+              ) : (
+                <p className="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+                  Pay by e-transfer using the details the sender provided.
+                </p>
+              )}
+            </div>
+            {showPaySecurely ? (
+              <>
+                <p className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" aria-hidden="true" />
+                  or
+                  <span className="h-px flex-1 bg-border" aria-hidden="true" />
+                </p>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Pay securely</p>
+                  <div className="flex flex-wrap gap-2">
+                    {offerStripeCheckout ? (
+                      <PublicPayButton publicToken={publicToken} provider="stripe" />
+                    ) : null}
+                    {offerSquareCheckout ? (
+                      <PublicPayButton publicToken={publicToken} provider="square" />
+                    ) : null}
+                    {offerPaypalCheckout ? (
+                      <PublicPayButton publicToken={publicToken} provider="paypal" />
+                    ) : null}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Payments are processed by the selected provider and paid to the
+                    invoice issuer&apos;s connected account. IndependentPocket does not
+                    hold your funds.
+                  </p>
+                </div>
+              </>
+            ) : null}
           </section>
         </>
       ) : null}
