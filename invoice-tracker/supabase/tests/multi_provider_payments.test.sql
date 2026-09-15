@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(23);
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -308,7 +308,8 @@ select throws_ok(
       'stripe'
     )
   $$,
-  '23503',
+  '42501',
+  null,
   'user A cannot attach a payment method to user B invoice'
 );
 
@@ -358,6 +359,7 @@ select throws_ok(
     )
   $$,
   '42501',
+  null,
   'users cannot insert provider-confirmed payments'
 );
 
@@ -384,6 +386,7 @@ select throws_ok(
     )
   $$,
   '23503',
+  null,
   'user A cannot attach user B connection to an invoice'
 );
 
@@ -428,6 +431,7 @@ select throws_ok(
     )
   $$,
   '23514',
+  null,
   'unsupported providers fail DB constraints'
 );
 
@@ -496,6 +500,7 @@ select throws_ok(
     )
   $$,
   '23505',
+  null,
   '(provider, provider_payment_id) cannot duplicate'
 );
 
@@ -551,6 +556,7 @@ select throws_ok(
     where id = '33333333-3333-4333-8333-333333333333'
   $$,
   '23503',
+  null,
   'connection with checkout history cannot be deleted'
 );
 
